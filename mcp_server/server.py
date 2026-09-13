@@ -23,6 +23,7 @@ mcp = MCPServer("shayan-todo")
 
 TEXT_SUFFIXES = {".py", ".js", ".html", ".css", ".json"}
 IGNORE_PARTS = {".git", ".venv", "node_modules", "__pycache__", "data", "docs", "static"}
+SOURCE_ROOTS = [ROOT / "app", ROOT / "mcp_server"]
 
 
 def _storage():
@@ -77,15 +78,72 @@ def add_todo(text: str) -> dict:
 
 
 @mcp.tool()
+def app_info() -> dict:
+    """Return a concise, truthful description of the app: what it is, the stack, and
+    exactly where each concern lives (state, API, frontend). Use this for questions like
+    'where is state stored?' when you want the authoritative structure.
+    """
+    return {
+        "name": "shayan-todo",
+        "kind": "Todo list (add, complete, delete, persist)",
+        "backend": "FastAPI (app/main.py) served with uvicorn",
+        "state": "persisted to data/todos.json via app/storage.py (functions: "
+        "list_todos, add_todo, update_todo, delete_todo). Todos are dicts: "
+        "{id:int, text:str, done:bool, created_at:ISO8601}.",
+        "api": [
+            "GET /api/todos -> {todos, count}",
+            "POST /api/todos {text} -> todo (201)",
+            "PATCH /api/todos/{id} {done|text} -> todo",
+            "DELETE /api/todos/{id} -> 204",
+            "GET /health -> {status:ok}",
+        ],
+        "frontend": "static/index.html + vanilla JS + CSS, served from /",
+        "not_a_tic_tac_toe": True,
+        "hint": "Ask explain_source('state') or explain_source('delete') for actual code.",
+    }
+
+
+@mcp.tool()
 def explain_source(topic: str) -> dict:
     """Explain a feature by citing the real code that implements it.
 
-    Examples: "win check", "where is state stored", "delete a todo", "PATCH", "done toggle".
+    Examples: "where is state stored", "add a todo", "delete a todo", "PATCH", "done toggle",
+    "win check" (returns an honest 'not applicable' for this todo app).
     """
-    roots = [ROOT / "app", ROOT / "mcp_server"]
+    hits = _search_source(topic)
+    if hits:
+        return {
+            "topic": topic,
+            "matches": hits[:30],
+            "hint": "Read app/storage.py and app/main.py for the authoritative flow.",
+        }
+    low = topic.lower()
+    if "win" in low or "tic tac" in low or "game" in low:
+        return {
+            "topic": topic,
+            "not_found": True,
+            "explanation": (
+                "This repo is a Todo list app, not a Tic Tac Toe game, so there is no "
+                "win check in the codebase. The closest feature is the 'done' toggle "
+                "(PATCH /api/todos/{id} with {\"done\": bool}) and delete. "
+                "See app_info() for the full structure."
+            ),
+        }
+    return {
+        "topic": topic,
+        "not_found": True,
+        "explanation": (
+            f"No code matched '{topic}'. This is a Todo app (FastAPI backend, storage in "
+            "data/todos.json). Try topics like: state, storage, add, delete, complete, "
+            "done toggle, PATCH, health, frontend. app_info() lists everything."
+        ),
+    }
+
+
+def _search_source(topic: str) -> list[dict]:
     hits = []
     topic_l = topic.lower()
-    for root in roots:
+    for root in SOURCE_ROOTS:
         for path in sorted(root.rglob("*")):
             if path.suffix not in TEXT_SUFFIXES:
                 continue
@@ -100,11 +158,7 @@ def explain_source(topic: str) -> dict:
                     hits.append(
                         {"file": str(path.relative_to(ROOT)), "line": i, "code": line.strip()}
                     )
-    return {
-        "topic": topic,
-        "matches": hits[:30],
-        "hint": "Read app/storage.py and app/main.py for the authoritative flow.",
-    }
+    return hits
 
 
 if __name__ == "__main__":
