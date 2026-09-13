@@ -2,7 +2,7 @@
 #
 # discovery.sh [--post-issue]
 #
-# Runs the discovery agent (Claude Code) over the working tree and reports:
+# Runs the discovery agent (AGENT env, via scripts/agent.sh) over the working tree and reports:
 # dead code, missing tests, risks, and improvement ideas.
 # - Always writes a report to docs/discovery-<date>.md
 # - With --post-issue, also opens a GitHub issue labelled "discovery".
@@ -20,7 +20,7 @@ REPO="${REPO:-MuhammadHaider1/shayan-todo}"
 log() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 log "Running discovery agent over the repo..."
-FINDINGS="$(claude -p --dangerously-skip-permissions \
+FINDINGS="$(bash scripts/agent.sh run \
 "You are the discovery agent for this repo. Read CLAUDE.md for context.
 Explore the codebase (app/, tests/, static/, scripts/, mcp_server/) and produce a findings report.
 

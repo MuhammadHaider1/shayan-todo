@@ -2,7 +2,7 @@
 #
 # run_loop.sh — the agent-driven development loop. One iteration:
 #
-#   ticket -> In Progress -> Claude Code implements + tests + commits
+#   ticket -> In Progress -> agent (claude/codex/gemini) implements + tests + commits
 #   -> PR -> GitHub Actions CI (lint/test/build) -> review agent
 #   -> approve/request-changes -> human merge gate -> gh pr merge --auto
 #   -> mark Done -> append cross-session memory
@@ -14,7 +14,8 @@
 # Env knobs
 #   REPO          owner/name of the GitHub repo (default: MuhammadHaider1/shayan-todo)
 #   GATE_MERGE    1 = ask a human before merging (default), 0 = auto
-#   AGENT_SPLIT   1 = planner subagent then coder subagent (stretch), 0 = one agent
+#   AGENT         claude | codex | gemini  (default codex — free with a ChatGPT account)
+#   AGENT_SPLIT   1 = planner then coder subagents (Claude Code only; stretch), 0 = one agent
 #
 set -euo pipefail
 
@@ -25,6 +26,7 @@ MODE="${MODE:-linear}"
 REPO="${REPO:-MuhammadHaider1/shayan-todo}"
 BASE="${BASE:-main}"
 GATE_MERGE="${GATE_MERGE:-1}"
+AGENT="${AGENT:-codex}"
 AGENT_SPLIT="${AGENT_SPLIT:-0}"
 PREFIX="feat"
 
@@ -32,21 +34,27 @@ log() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 fail() { log "STOP: $*"; exit 1; }
 
 require() { command -v "$1" >/dev/null 2>&1 || fail "missing binary: $1 (install it)"; }
-require claude
 require gh
 require git
 require uv
 require python3
 
-log "Agent loop — iteration starting (mode=$MODE, repo=$REPO)"
+log "Agent loop — iteration starting (mode=$MODE, repo=$REPO, agent=$AGENT)"
 
 # --- auth sanity checks -----------------------------------------------------
-if ! claude -p "reply with exactly: ok" >/dev/null 2>&1; then
-  fail "Claude Code is not logged in. Run 'claude' in a terminal once and sign in, then retry."
+if ! bash scripts/agent.sh check; then
+  case "$AGENT" in
+    claude) fail "Claude Code is not logged in. Run 'claude' once to sign in." ;;
+    codex)  fail "Codex is not logged in. Run 'codex login' (free ChatGPT account works), or set AGENT=gemini." ;;
+    gemini) fail "Gemini CLI missing or GEMINI_API_KEY not set. Install via 'npm i -g @google/gemini-cli' and set the key." ;;
+  esac
 fi
-gh auth status >/dev/null 2>&1 || fail "gh is not authenticated. Run 'gh auth login'."
+gh auth status >/dev/null 2>&1 || fail "gh is not authenticated (needed for PRs + merges). Run 'gh auth login'."
 git config user.name >/dev/null 2>&1 || { git config user.name "Agent Loop"; }
 git config user.email >/dev/null 2>&1 || { git config user.email "agent-loop@shayan.local"; }
+if [ "$AGENT_SPLIT" = "1" ] && [ "$AGENT" != "claude" ]; then
+  fail "AGENT_SPLIT (planner/coder subagents) currently requires AGENT=claude (Claude Code)."
+fi
 
 # --- 1. fetch next ticket ---------------------------------------------------
 declare TID IDKEY TITLE DESC
@@ -114,8 +122,8 @@ Tell the coder to read CLAUDE.md, docs/decisions.md and docs/memory.md first, ma
 pipeline green (uv run ruff check app mcp_server tests scripts && uv run pytest -q),
 commit, and append a note to docs/memory.md. Nobody pushes or opens a PR."
 else
-  log "Claude Code implementing the ticket (vibe coding step, no human edits)..."
-  claude -p --dangerously-skip-permissions \
+  log "Agent ($AGENT) implementing the ticket (vibe coding step, no human edits)..."
+  bash scripts/agent.sh run \
     "You are implementing the ticket below on branch $BRANCH.
 
 $ticket_block

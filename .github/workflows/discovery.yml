@@ -28,7 +28,11 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Install Gemini CLI (free discovery agent)
+        run: npm install -g @google/gemini-cli
+
       - name: Run discovery agent
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AGENT: gemini
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: bash scripts/discovery.sh --post-issue

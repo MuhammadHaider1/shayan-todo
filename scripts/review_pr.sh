@@ -2,8 +2,8 @@
 #
 # review_pr.sh <pr_url> <branch> <ticket_id> <ticket_key> <mode>
 #
-# Runs the review agent (Claude Code) on a PR diff, posts findings to the PR via gh,
-# approves when clean, or requests changes and moves the Linear ticket to In Review.
+# Runs the review agent (AGENT env, via scripts/agent.sh) on a PR diff, posts findings
+# to the PR via gh, approves when clean, or requests changes + moves ticket to In Review.
 #
 set -euo pipefail
 
@@ -27,7 +27,7 @@ DIFF="$(git diff "origin/${BASE}...${BRANCH}" || true)"
 log "Reviewing $IDKEY ($BRANCH) diff:"
 printf '%s\n' "$DIFF_STAT"
 
-REVIEW_JSON="$(claude -p --dangerously-skip-permissions \
+REVIEW_JSON="$(bash scripts/agent.sh run \
 "You are the review agent for PR $IDKEY ($PR_URL), branch $BRANCH, base $BASE.
 Criteria: interface contract in CLAUDE.md, correctness, missing/weak tests, dead code,
 security issues, scope creep, unescaped user input.

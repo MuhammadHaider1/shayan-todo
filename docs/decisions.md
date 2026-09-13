@@ -9,5 +9,8 @@
   `get_todos`, `get_todo`, `add_todo`, `todo_stats`, `explain_source`.
 - **Loop**: driven by `scripts/run_loop.sh`; Linear owns tickets, GitHub Actions owns CI,
   `gh pr merge --auto` owns auto-merge, Claude Code agents own implementation + review + discovery.
-- **Agents**: local `claude` CLI (implementation/review/discovery) + `codex` CLI must both be
-  able to talk to the app through the MCP server (Phase later).
+- **Agents**: headless agent backend is pluggable via `AGENT` env in `scripts/agent.sh`:
+  - `codex` (default, free with a ChatGPT account) — implementation/review/discovery,
+  - `gemini` (fully free via Google AI Studio key),
+  - `claude` (Claude Code — needs a paid Pro plan, configured but not default).
+  All three can talk to the app through the MCP server (`mcp_server/server.py`).
