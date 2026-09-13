@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv
+
+# Runtime data (app state is gitignored so agents branch without clashing)
+data/
+
+# Env / secrets
+.env
+clin_*.key
+*.pem
+
+# OS
+.DS_Store

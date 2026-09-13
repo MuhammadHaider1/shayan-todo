@@ -1,0 +1,38 @@
+[
+  {
+    "key": "LOCAL-1",
+    "title": "Scaffold FastAPI todo API (GET/POST /api/todos) + storage + tests",
+    "description": "Create the FastAPI app under app/. Add app/storage.py with the exact interface contract from CLAUDE.md (data/todos.json), Pydantic model for a todo, GET /api/todos returning {\"todos\": [...], \"count\": n} with a fake seed of a couple of todos, POST /api/todos (text) returning the created todo, plus GET /health. Mount the static/ dir. Write pytest tests covering list + add + health. Leave the frontend for a later ticket.",
+    "status": "Backlog"
+  },
+  {
+    "key": "LOCAL-2",
+    "title": "Complete a todo: PATCH /api/todos/{id} (toggle done)",
+    "description": "Implement PATCH /api/todos/{id} accepting {\"done\": bool} or {\"text\": str} and returning the updated todo. 404 when the id is unknown. Extend storage.update_todo. Add tests for toggling, renaming, and 404s. Keep the CLAUDE.md contract.",
+    "status": "Backlog"
+  },
+  {
+    "key": "LOCAL-3",
+    "title": "Delete a todo: DELETE /api/todos/{id}",
+    "description": "Implement DELETE /api/todos/{id} -> 204, 404 when missing. Add storage.delete_todo and tests (delete existing, delete missing, list after delete). Keep contract.",
+    "status": "Backlog"
+  },
+  {
+    "key": "LOCAL-4",
+    "title": "Frontend: add + list todos (vanilla JS)",
+    "description": "Build static/index.html + static/index.js + static/style.css served from /index.html. Load todos from GET /api/todos, render them, and add new ones via POST. Minimal but clean styling.",
+    "status": "Backlog"
+  },
+  {
+    "key": "LOCAL-5",
+    "title": "Frontend: toggle done, delete, and an empty state",
+    "description": "Wire a checkbox to PATCH done on each rendered todo and a delete button to DELETE. Show a friendly empty state when there are no todos. Keep styles tidy.",
+    "status": "Backlog"
+  },
+  {
+    "key": "LOCAL-6",
+    "title": "Bug: todo text is rendered unsafely (HTML injection in the list)",
+    "description": "Todos are currently inserted into the DOM with innerHTML, so text like <img src=x onerror=alert(1)> renders/executes. Fix by using textContent / a DOM-building approach so all todo text renders literally. Add a regression test for list_todos round-tripping exactly what was added.",
+    "status": "Backlog"
+  }
+]

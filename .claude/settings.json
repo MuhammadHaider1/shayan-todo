@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "Task",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git add *)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git diff:*)",
+      "Bash(uv:*)",
+      "Bash(uv run:*)",
+      "Bash(uv add:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv build:*)",
+      "Bash(uv lock:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(npm:*)"
+    ],
+    "disallow": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(sudo:*)",
+      "Bash(systemctl:*)",
+      "Bash(kill:*)"
+    ]
+  }
+}

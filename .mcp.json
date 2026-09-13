@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "shayan-todo": {
+      "command": "uv",
+      "args": ["run", "mcp_server/server.py"]
+    }
+  }
+}
