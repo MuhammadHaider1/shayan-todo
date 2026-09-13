@@ -98,18 +98,21 @@ $DESC"
 if [ "$AGENT_SPLIT" = "1" ]; then
   log "Planner subagent drafting an implementation plan..."
   PLAN="$(claude -p --dangerously-skip-permissions \
-    "You are the 'planner' subagent. Use Subagent(planner) from the .claude/agents/planner.md definition. Work on: $ticket_block. Return the plan text verbatim.")"
+    "Invoke the @planner subagent (.claude/agents/planner.md) for this ticket and return the plan it produces verbatim.
+Ticket: $ticket_block")"
   log "Plan received. Coder subagent implementing..."
   claude -p --dangerously-skip-permissions \
-    "You are the 'coder' subagent (see .claude/agents/coder.md). Implement this ticket:
+    "Invoke the @coder subagent (.claude/agents/coder.md) to implement this ticket against the planner's plan.
+
+Ticket:
 $ticket_block
 
-Follow the plan below precisely:
+Plan:
 $PLAN
 
-Read CLAUDE.md, docs/decisions.md and docs/memory.md first. Make the pipeline green
-(uv run ruff check app mcp_server tests scripts && uv run pytest -q), commit, and append a note
-to docs/memory.md. Do not push, do not open a PR, do not touch Linear."
+Tell the coder to read CLAUDE.md, docs/decisions.md and docs/memory.md first, make the
+pipeline green (uv run ruff check app mcp_server tests scripts && uv run pytest -q),
+commit, and append a note to docs/memory.md. Nobody pushes or opens a PR."
 else
   log "Claude Code implementing the ticket (vibe coding step, no human edits)..."
   claude -p --dangerously-skip-permissions \
